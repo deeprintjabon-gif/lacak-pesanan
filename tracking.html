@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Status Pesanan - Deeprint Indonesia</title>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f1f5f9;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 16px 40px;
+    }
+    .container {
+      max-width: 480px;
+      width: 100%;
+    }
+    .header {
+      background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+      border-radius: 20px;
+      padding: 30px 20px 24px;
+      text-align: center;
+      color: white;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+    .header .logo {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+      margin-bottom: 4px;
+    }
+    .header .sub {
+      font-size: 0.85rem;
+      opacity: 0.8;
+    }
+    .header .status-badge {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 8px 24px;
+      border-radius: 50px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .status-badge.diproses {
+      background: #f59e0b;
+      color: #1e293b;
+    }
+    .status-badge.selesai {
+      background: #10b981;
+      color: white;
+    }
+    .info-card {
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .info-card h3 {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #94a3b8;
+      margin-bottom: 12px;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 8px;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: 0.9rem;
+    }
+    .info-row .label {
+      color: #64748b;
+    }
+    .info-row .value {
+      color: #1e293b;
+      font-weight: 600;
+      text-align: right;
+    }
+    .item-list { list-style: none; }
+    .item-list li {
+      padding: 12px 0;
+      border-bottom: 1px dashed #e2e8f0;
+    }
+    .item-list li:last-child { border-bottom: none; }
+    .item-name {
+      font-weight: 600;
+      color: #1e293b;
+      font-size: 0.9rem;
+    }
+    .item-detail {
+      font-size: 0.8rem;
+      color: #64748b;
+      margin-top: 2px;
+    }
+    .item-price {
+      font-weight: 700;
+      color: #1e293b;
+      font-size: 0.9rem;
+    }
+    .total-section {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 4px;
+    }
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      font-size: 0.9rem;
+    }
+    .total-row.total {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #1e293b;
+      border-top: 2px solid #e2e8f0;
+      padding-top: 10px;
+      margin-top: 6px;
+    }
+    .total-row.sisa {
+      color: #ef4444;
+      font-weight: 700;
+    }
+    .total-row.lunas {
+      color: #10b981;
+      font-weight: 700;
+    }
+    .payment-progress {
+      margin-top: 16px;
+    }
+    .progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 50px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 50px;
+      transition: width 0.6s ease;
+    }
+    .progress-bar-fill.lunas { background: #10b981; }
+    .progress-bar-fill.diproses { background: #f59e0b; }
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: #64748b;
+      margin-top: 4px;
+    }
+    .footer-info {
+      text-align: center;
+      font-size: 0.75rem;
+      color: #94a3b8;
+      margin-top: 20px;
+      line-height: 1.6;
+    }
+    .footer-info strong {
+      color: #64748b;
+    }
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
+    }
+    .loading .spinner {
+      width: 44px;
+      height: 44px;
+      border: 4px solid #e2e8f0;
+      border-top-color: #3b82f6;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading p {
+      color: #64748b;
+      font-size: 0.9rem;
+    }
+    .error-state {
+      text-align: center;
+      padding: 60px 20px;
+    }
+    .error-state .icon {
+      font-size: 3rem;
+      margin-bottom: 12px;
+    }
+    .error-state h2 {
+      font-size: 1.2rem;
+      color: #1e293b;
+      margin-bottom: 8px;
+    }
+    .error-state p {
+      color: #64748b;
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+    }
+    .btn-refresh {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-refresh:hover { background: #2563eb; }
+    .last-update {
+      text-align: center;
+      font-size: 0.7rem;
+      color: #94a3b8;
+      margin-top: 12px;
+    }
+    .payment-status-tag {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .payment-status-tag.lunas {
+      background: #dcfce7;
+      color: #15803d;
+    }
+    .payment-status-tag.belum-lunas {
+      background: #fef3c7;
+      color: #b45309;
+    }
+    @media (max-width: 480px) {
+      body { padding: 12px 10px 30px; }
+      .header { padding: 24px 16px 20px; }
+      .header .logo { font-size: 1.3rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="app">
+    <div class="loading" id="loadingState">
+      <div class="spinner"></div>
+      <p>Memuat Status Pesanan...</p>
+    </div>
+
+    <div class="error-state" id="errorState" style="display:none;">
+      <div class="icon">&#128533;</div>
+      <h2 id="errorTitle">Pesanan Tidak Ditemukan</h2>
+      <p id="errorMessage">Maaf, kami tidak dapat menemukan data pesanan Anda. Silakan periksa kembali tautan atau hubungi kami.</p>
+      <button class="btn-refresh" onclick="location.reload()">Coba Lagi</button>
+    </div>
+
+    <div id="content" style="display:none;">
+      <div class="header">
+        <div class="logo">DEEPRINT INDONESIA</div>
+        <div class="sub">Status Pesanan Anda</div>
+        <div class="status-badge" id="statusBadge">&#9203; Diproses</div>
+      </div>
+
+      <div class="info-card">
+        <h3>Informasi Pesanan</h3>
+        <div class="info-row">
+          <span class="label">No. Pesanan</span>
+          <span class="value" id="orderId">-</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Tanggal</span>
+          <span class="value" id="orderDate">-</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Pelanggan</span>
+          <span class="value" id="customerName">-</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Pembayaran</span>
+          <span class="value"><span class="payment-status-tag" id="paymentStatusTag">Belum Lunas</span></span>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <h3>Detail Pesanan</h3>
+        <ul class="item-list" id="itemList"></ul>
+        <div class="total-section">
+          <div class="total-row">
+            <span>Total Tagihan</span>
+            <span id="totalTagihan">Rp 0</span>
+          </div>
+          <div class="total-row">
+            <span>Dibayar</span>
+            <span id="totalDibayar">Rp 0</span>
+          </div>
+          <div class="total-row sisa" id="sisaRow">
+            <span>Sisa Tagihan</span>
+            <span id="sisaTagihan">Rp 0</span>
+          </div>
+          <div class="payment-progress">
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+            </div>
+            <div class="progress-label">
+              <span>Rp 0</span>
+              <span id="progressText">0%</span>
+              <span id="progressTarget">Rp 0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <h3>Kontak Toko</h3>
+        <div class="info-row"><span class="label">Telepon</span><span class="value">0851-7957-2577</span></div>
+        <div class="info-row"><span class="label">Telepon</span><span class="value">0851-7699-2023</span></div>
+        <div class="info-row"><span class="label">Lokasi</span><span class="value">Mojokerto, Jawa Timur</span></div>
+      </div>
+
+      <div class="footer-info">
+        <strong>Deeprint Indonesia</strong><br>
+        Printing Happiness<br>
+        Terima Kasih Telah Mempercayai Kami
+      </div>
+
+      <div class="last-update" id="lastUpdate"></div>
+    </div>
+  </div>
+
+  <script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzFAQBWJOlO90UIPU6_NU5-2TuGTwNzqW7tEJsTGQaLzjTAZ6JZIeUwLkod_3ALiM94UA/exec';
+    const formatRp = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 });
+    let orderData = null;
+    let refreshTimer = null;
+
+    function getQueryParam(name) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(name);
+    }
+
+    async function fetchOrderData() {
+      const orderId = getQueryParam('id');
+      if (!orderId) {
+        showError('Tautan Tidak Valid', 'Tautan yang Anda gunakan tidak memiliki nomor pesanan. Silakan scan ulang QR Code atau hubungi kami.');
+        return;
+      }
+      try {
+        const response = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          redirect: 'follow',
+          body: JSON.stringify({ action: 'fetch' })
+        });
+        const res = await response.json();
+        if (res.status === 'success' && Array.isArray(res.data)) {
+          const found = res.data.find(n => String(n.idTimestamp) === orderId);
+          if (found) {
+            orderData = found;
+            displayOrder(orderData);
+          } else {
+            showError('Pesanan Tidak Ditemukan', 'Pesanan dengan nomor tersebut tidak ditemukan. Mungkin sudah dihapus atau nomor pesanan tidak valid.');
+          }
+        } else {
+          showError('Gagal Memuat Data', 'Terjadi kesalahan saat memuat data. Silakan coba lagi nanti.');
+        }
+      } catch (err) {
+        console.error('Fetch error:', err);
+        showError('Koneksi Gagal', 'Tidak dapat terhubung ke server. Periksa koneksi internet Anda dan coba lagi.');
+      }
+    }
+
+    function displayOrder(data) {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('errorState').style.display = 'none';
+      document.getElementById('content').style.display = 'block';
+
+      // Order ID (short)
+      const shortId = String(data.idTimestamp).slice(-6);
+      document.getElementById('orderId').textContent = '#' + shortId;
+      document.getElementById('orderDate').textContent = data.tanggalLokal || '-';
+      document.getElementById('customerName').textContent = data.namaPelanggan || '-';
+
+      // Status badge
+      const badge = document.getElementById('statusBadge');
+      const isSelesai = data.status === 'Selesai';
+      badge.textContent = isSelesai ? '\u2705 Selesai' : '\u23F3 Diproses';
+      badge.className = 'status-badge ' + (isSelesai ? 'selesai' : 'diproses');
+
+      // Payment status
+      const sisa = Math.max(0, data.totalTagihan - data.dp);
+      const isLunas = data.totalTagihan > 0 && sisa === 0;
+      const paymentTag = document.getElementById('paymentStatusTag');
+      paymentTag.textContent = isLunas ? 'Lunas' : 'Belum Lunas';
+      paymentTag.className = 'payment-status-tag ' + (isLunas ? 'lunas' : 'belum-lunas');
+
+      // Items
+      const itemList = document.getElementById('itemList');
+      itemList.innerHTML = '';
+      if (data.pesanan && data.pesanan.length > 0) {
+        data.pesanan.forEach((item, i) => {
+          const li = document.createElement('li');
+          let detailText = '';
+          if (item.tipe === 'banner') {
+            detailText = item.ukuranAsli && item.ukuranAsli !== '-' ? `${item.ukuranAsli} | ${item.finishing || '-'}` : '';
+            if (item.jumlah > 1) {
+              detailText += detailText ? ' | ' : '';
+              detailText += `${item.jumlah} pcs @ ${formatRp.format(item.hargaSatuan)}`;
+            }
+          } else {
+            if (item.jumlah > 1) {
+              detailText = `${item.jumlah} pcs @ ${formatRp.format(item.hargaSatuan)}`;
+            }
+          }
+          li.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+              <div>
+                <div class="item-name">${i + 1}. ${item.keterangan}</div>
+                ${detailText ? `<div class="item-detail">${detailText}</div>` : ''}
+              </div>
+              <div class="item-price">${formatRp.format(item.total)}</div>
+            </div>
+          `;
+          itemList.appendChild(li);
+        });
+      }
+
+      // Totals
+      document.getElementById('totalTagihan').textContent = formatRp.format(data.totalTagihan);
+      document.getElementById('totalDibayar').textContent = formatRp.format(data.dp);
+
+      const sisaRow = document.getElementById('sisaRow');
+      const sisaEl = document.getElementById('sisaTagihan');
+      if (isLunas) {
+        sisaRow.className = 'total-row lunas';
+        sisaEl.textContent = 'Lunas';
+      } else {
+        sisaRow.className = 'total-row sisa';
+        sisaEl.textContent = formatRp.format(sisa);
+      }
+
+      // Progress bar
+      const pct = data.totalTagihan > 0 ? Math.min(100, Math.round((data.dp / data.totalTagihan) * 100)) : 0;
+      const fill = document.getElementById('progressFill');
+      fill.style.width = pct + '%';
+      fill.className = 'progress-bar-fill ' + (pct >= 100 ? 'lunas' : 'diproses');
+      document.getElementById('progressText').textContent = pct + '%';
+      document.getElementById('progressTarget').textContent = formatRp.format(data.totalTagihan);
+
+      // Last update
+      const now = new Date();
+      document.getElementById('lastUpdate').textContent = 'Terakhir diperbarui: ' + now.toLocaleTimeString('id-ID');
+
+      // Schedule auto-refresh every 30 seconds
+      if (refreshTimer) clearInterval(refreshTimer);
+      refreshTimer = setInterval(() => {
+        fetchOrderData();
+      }, 30000);
+    }
+
+    function showError(title, message) {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('content').style.display = 'none';
+      document.getElementById('errorState').style.display = 'block';
+      document.getElementById('errorTitle').textContent = title;
+      document.getElementById('errorMessage').textContent = message;
+    }
+
+    window.onload = function() {
+      fetchOrderData();
+    };
+  </script>
+</body>
+</html>
