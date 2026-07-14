@@ -1,0 +1,1092 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Kasir Deeprint Indonesia</title>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    /* ========================================================= */
+    /* DESAIN ANTARMUKA KASIR UTAMA (TAMPILAN DI LAYAR BROWSER)  */
+    /* ========================================================= */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f1f5f9;
+      margin: 0;
+      padding: 30px 20px;
+      box-sizing: border-box;
+    }
+    
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    
+    .column {
+      flex: 1;
+      min-width: 400px;
+      background: white;
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.04);
+      box-sizing: border-box;
+    }
+
+    .history-column {
+      flex: 100%; 
+      background: white;
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.04);
+      box-sizing: border-box;
+    }
+    
+    h2 {
+      color: #1e293b;
+      margin-top: 0;
+      margin-bottom: 20px;
+      font-size: 1.3rem;
+      font-weight: 600;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 10px;
+    }
+    
+    .input-group { margin-bottom: 15px; }
+    
+    label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      color: #64748b;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    
+    .limit-text { color: #ef4444; font-size: 0.75rem; }
+    
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 0.95rem;
+      color: #334155;
+      font-family: inherit;
+    }
+    input:focus, select:focus { outline: none; border-color: #3b82f6; }
+    
+    .preview-harga-box {
+      background-color: #eff6ff;
+      border: 1px solid #bfdbfe;
+      padding: 12px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      color: #1e3a8a;
+      font-size: 0.95rem;
+    }
+
+    .btn-tambah {
+      width: 100%; background-color: #3b82f6; color: white; border: none;
+      padding: 12px; border-radius: 8px; font-size: 0.95rem; font-weight: 600;
+      cursor: pointer; margin-top: 5px; transition: background 0.2s;
+    }
+    .btn-tambah:hover { background-color: #2563eb; }
+
+    .btn-toggle-opsi {
+      width: 100%; background-color: #f8fafc; color: #475569; border: 1px dashed #cbd5e1;
+      padding: 10px; border-radius: 8px; font-size: 0.85rem; font-weight: 500;
+      cursor: pointer; margin-top: 15px; margin-bottom: 10px;
+    }
+
+    .btn-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .btn-action {
+      width: 100%; color: white; border: none; padding: 12px;
+      border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-action:hover { filter: brightness(0.9); }
+    .btn-salin { background-color: #22c55e; }
+    .btn-cetak { background-color: transparent; } 
+    .btn-reset { background-color: #ef4444; }
+
+    .nota-box {
+      background-color: #fafafa;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 25px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.9rem;
+      color: #1e293b;
+    }
+    
+    .nota-header { text-align: center; margin-bottom: 15px; }
+    .nota-title { font-size: 1.2rem; font-weight: bold; letter-spacing: 1px; }
+    .info-pelanggan { margin-bottom: 10px; font-size: 0.85rem; }
+    
+    .item-pesanan {
+      padding: 10px 40px 10px 0;
+      position: relative;
+      border-bottom: 1px dashed #e2e8f0;
+    }
+    .item-pesanan:last-child { border-bottom: none; }
+    
+    .item-title { font-weight: bold; }
+    .item-detail { display: flex; justify-content: space-between; font-size: 0.85rem; color: #475569; }
+    .item-subdetail { font-size: 0.8rem; color: #64748b; font-style: italic; }
+    
+    .btn-hapus {
+      position: absolute; top: 10px; right: 0; background: #ef4444; color: white;
+      border: none; border-radius: 6px; padding: 4px 8px; font-size: 0.75rem;
+      font-weight: bold; cursor: pointer; transition: background 0.2s;
+    }
+    .btn-hapus:hover { background: #dc2626; }
+
+    .nota-grand-total {
+      margin-top: 10px; font-size: 1.1rem; font-weight: bold;
+      display: flex; justify-content: space-between;
+    }
+    .nota-payment-row {
+      display: flex; justify-content: space-between; font-size: 0.95rem;
+      margin-top: 5px; color: #475569;
+    }
+    .nota-sisa { font-size: 1.05rem; font-weight: bold; color: #ef4444; }
+
+    .nota-footer { text-align: center; margin-top: 25px; font-size: 0.8rem; color: #64748b; }
+    
+    .history-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem; }
+    .history-table th, .history-table td { border-bottom: 1px solid #e2e8f0; padding: 10px; text-align: left; vertical-align: middle; }
+    .history-table th { background-color: #f8fafc; color: #475569; font-weight: 600; }
+    .btn-buka { background-color: #3b82f6; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
+    .btn-hapus-riwayat { background-color: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
+
+    .cb-lunas-label {
+      display: flex; align-items: center; gap: 5px; cursor: pointer;
+      color: #10b981; font-weight: bold; font-size: 0.85rem;
+      background: #ecfdf5; padding: 3px 8px; border-radius: 6px; border: 1px solid #a7f3d0;
+    }
+    .cb-lunas-label input { width: auto; margin: 0; }
+
+    @media print {
+      @page { margin: 0; }
+      body { background: white; margin: 0; padding: 5mm; }
+      .container { display: none !important; } 
+      #areaCetakLatarBelakang {
+        display: flex !important;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      .nota-print-wrapper {
+        width: 10.2cm; min-height: 14.8cm; border: 1px solid #000; 
+        background: white; padding: 15px; box-sizing: border-box; 
+        font-family: 'Courier New', Courier, monospace; font-size: 10pt; color: #000; 
+      }
+      .item-pesanan { padding: 6px 0 !important; border-bottom: none !important; }
+      .nota-title, .item-detail, .nota-grand-total, .nota-payment-row, .nota-sisa, .nota-footer, .item-subdetail { color: #000 !important; }
+      .nota-grand-total { font-size: 12pt !important; border-top: 1px dashed #000; padding-top: 5px; }
+      .btn-hapus { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <div class="column">
+      <h2>1. Data Pelanggan</h2>
+      <div class="input-group">
+        <label>Nama Pelanggan / Instansi</label>
+        <input type="text" id="pelanggan" placeholder="Contoh: Bpk. Budi - Toko Maju" oninput="tandaiBelumDisimpan(); updateInfoPelanggan()">
+      </div>
+
+      <h2>2. Tambah Item Banner</h2>
+      
+      <div style="display: flex; gap: 10px;">
+        <div class="input-group" style="flex: 1;">
+          <label>Lebar (cm) <span class="limit-text">*Min: 50, Max: 310</span></label>
+          <input type="number" id="lebar" placeholder="50 - 310" onkeypress="cekEnterBanner(event)" oninput="hitungPreviewHarga()">
+        </div>
+        
+        <div class="input-group" style="flex: 1;">
+          <label>Panjang (cm) <span class="limit-text">*Min: 50</span></label>
+          <input type="number" id="panjang" placeholder="Minimal 50" onkeypress="cekEnterBanner(event)" oninput="hitungPreviewHarga()">
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Jumlah Pesanan (Pcs)</label>
+        <input type="number" id="jumlah" placeholder="Contoh: 2" value="1" min="1" onkeypress="cekEnterBanner(event)" oninput="hitungPreviewHarga()">
+      </div>
+
+      <div class="input-group">
+        <label>Jenis Finishing</label>
+        <select id="finishing" onchange="togglePlong()">
+          <option value="Lepas">Lepas (Lebihan)</option>
+          <option value="Lipat">Lipat (Lem Keliling)</option>
+          <option value="Plong">Plong (Mata Ayam)</option>
+        </select>
+      </div>
+
+      <div class="input-group" id="wadahPlong" style="display: none;">
+        <label>Jumlah Plong (Per Banner)</label>
+        <input type="number" id="plong" placeholder="Masukkan jumlah" value="0" onkeypress="cekEnterBanner(event)" oninput="hitungPreviewHarga()">
+      </div>
+
+      <div class="preview-harga-box">
+        <span>Estimasi Harga:</span>
+        <span id="previewHargaTeks" style="font-weight: bold; font-size: 1.1rem; color: #3b82f6;">Rp 0</span>
+      </div>
+
+      <button class="btn-tambah" onclick="tambahKeNota()">+ Tambahkan Banner</button>
+
+      <button class="btn-toggle-opsi" id="btnToggleOpsi" onclick="toggleMenuOpsional()">+ Tambah Item/Biaya Lain (Catatan Tambahan)</button>
+
+      <div id="menuOpsional" style="display: none; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px dashed #cbd5e1; margin-top: 10px;">
+        <div class="input-group">
+          <label>Nama Item / Catatan Tambahan</label>
+          <input type="text" id="itemLain" placeholder="Contoh: Rangka X Banner" onkeypress="cekEnterLain(event)">
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <div class="input-group" style="flex: 1;">
+            <label>Harga Satuan (Rp)</label>
+            <input type="number" id="hargaLain" placeholder="Contoh: 35000" onkeypress="cekEnterLain(event)">
+          </div>
+          <div class="input-group" style="flex: 1;">
+            <label>Jumlah</label>
+            <input type="number" id="jumlahLain" placeholder="1" value="1" min="1" onkeypress="cekEnterLain(event)">
+          </div>
+        </div>
+        <button class="btn-tambah" style="background-color: #475569;" onclick="tambahItemLainKeNota()">+ Tambahkan Item</button>
+      </div>
+
+      <h2>3. Info Pembayaran</h2>
+      <div class="input-group">
+        <label style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span>Uang Muka (DP) / Telah Dibayar</span>
+          <label class="cb-lunas-label">
+            <input type="checkbox" id="cbLunas" onchange="aksiSetLunas()"> Lunas
+          </label>
+        </label>
+        <input type="number" id="bayarDp" placeholder="Kosongi jika belum bayar" oninput="tandaiBelumDisimpan(); sinkronCheckboxLunas(); renderNota()">
+      </div>
+
+    </div>
+    
+    <div class="column">
+      <h2>Preview Nota Kasir</h2>
+      
+      <div class="nota-box" id="notaUtama">
+        <div class="nota-header">
+          <div class="nota-title">DEEPRINT INDONESIA</div>
+          <div style="font-size: 0.8rem; margin-top: 2px;">0851-7957-2577 | 0851-7699-2023</div>
+          <div style="font-size: 0.8rem; margin-top: 2px;">Mojokerto, Jawa Timur</div>
+          <div style="font-size: 0.75rem; margin-top: 4px;" id="notaTanggal">-</div>
+        </div>
+        
+        <div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
+
+        <div class="info-pelanggan">
+          Pelanggan : <span id="tampilPelanggan">-</span>
+        </div>
+        
+        <div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
+        
+        <div id="daftarItem">
+          <div style="text-align: center; color: #94a3b8; font-style: italic; padding: 20px 0;">
+            Belum ada pesanan yang ditambahkan.
+          </div>
+        </div>
+        
+        <div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
+        
+        <div class="nota-grand-total">
+          <span>TOTAL:</span>
+          <span id="tampilGrandTotal">Rp 0</span>
+        </div>
+
+        <div class="nota-payment-row">
+          <span>Dibayar (DP):</span>
+          <span id="tampilDp">Rp 0</span>
+        </div>
+
+        <div class="nota-payment-row nota-sisa">
+          <span>Sisa Tagihan:</span>
+          <span id="tampilSisa">Rp 0</span>
+        </div>
+
+        <div id="notaQRWrap" style="display:none; text-align:center; margin-top:15px;">
+          <div id="notaQRImg" style="display:inline-block;"></div>
+          <div style="font-size:0.7rem; color:#64748b; margin-top:4px;">Scan untuk Cek Status Pesanan</div>
+        </div>
+
+        <div style="border-top: 1px dashed #000; margin: 15px 0 10px 0;"></div>
+
+        <div class="nota-footer">
+          *** Terima Kasih ***<br>
+          Pesanan Anda Sedang Kami Proses<br>
+          Deeprint Indonesia - Printing Happines
+        </div>
+      </div>
+      
+      <div class="btn-grid">
+        <button class="btn-action btn-salin" onclick="salinKeClipboard()">Teks WA</button>
+        <button class="btn-action" style="background-color:#8b5cf6;" onclick="generateQR()">QR Code</button>
+        
+        <div style="display: flex; border-radius: 8px; overflow: hidden; background-color: #4f46e5;">
+          <select id="opsiCopyCetak" title="Pilih jumlah cetak" style="border: none; background-color: #3730a3; color: white; padding: 0 10px; font-weight: bold; cursor: pointer; outline: none; text-align: center; font-size: 0.95rem; font-family: inherit; border-radius: 0;">
+            <option value="1">1x</option>
+            <option value="2">2x</option>
+          </select>
+          <button class="btn-action btn-cetak" onclick="cetakNota()" style="border-radius: 0; flex: 1; margin: 0; border-left: 1px solid #6366f1;">Cetak</button>
+        </div>
+
+        <button class="btn-action btn-reset" onclick="resetNota()">Kosongkan</button>
+      </div>
+    </div>
+
+    <div class="history-column">
+      <h2>Pencarian Riwayat Nota <span style="font-size: 0.8rem; color: #ef4444; font-weight: normal;">(Auto-Hapus Dari Sheet Jika > 14 Hari)</span></h2>
+      
+      <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+        <div class="input-group" style="flex: 2; margin-bottom: 0;">
+          <input type="text" id="cariNama" placeholder="Ketik nama pelanggan untuk mencari riwayat..." oninput="tampilkanRiwayat()">
+        </div>
+        <div class="input-group" style="flex: 1; margin-bottom: 0;">
+          <input type="date" id="cariTanggal" onchange="tampilkanRiwayat()">
+        </div>
+      </div>
+
+      <div id="tabelRiwayatContainer" style="display: none; overflow-x: auto;">
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>Tanggal</th>
+              <th>Nama Pelanggan</th>
+              <th>Sisa Tagihan</th>
+              <th style="text-align: center; color: #10b981;">Lunas?</th>
+              <th>Status Pesanan</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tabelRiwayat">
+            </tbody>
+        </table>
+      </div>
+    </div>
+    
+  </div>
+
+  <div id="areaCetakLatarBelakang" style="display: none;"></div>
+
+  <script>
+    // =========================================================================================
+    // PENTING: TEMPELKAN URL GOOGLE WEB APP ANDA DI BAWAH INI (PASTIKAN SATU BARIS LURUS!)
+    // =========================================================================================
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzFAQBWJOlO90UIPU6_NU5-2TuGTwNzqW7tEJsTGQaLzjTAZ6JZIeUwLkod_3ALiM94UA/exec';
+
+    let daftarPesanan = [];
+    let isNotaSaved = false; 
+    let idNotaAktif = null; 
+    let riwayatGlobal = []; 
+
+    const formatRp = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 });
+
+    window.onload = function() {
+      let hariIni = new Date();
+      let opsi = { year: 'numeric', month: 'long', day: 'numeric' };
+      document.getElementById('notaTanggal').innerText = hariIni.toLocaleDateString('id-ID', opsi);
+      muatRiwayatDariSheets();
+    };
+
+    function tandaiBelumDisimpan() { isNotaSaved = false; }
+
+    function aksiSetLunas() {
+      let cb = document.getElementById('cbLunas');
+      if (cb.checked) {
+        let grandTotal = daftarPesanan.reduce((sum, item) => sum + item.total, 0);
+        document.getElementById('bayarDp').value = grandTotal;
+      } else {
+        document.getElementById('bayarDp').value = '';
+      }
+      tandaiBelumDisimpan();
+      renderNota();
+    }
+
+    function sinkronCheckboxLunas() {
+      let grandTotal = daftarPesanan.reduce((sum, item) => sum + item.total, 0);
+      let dp = parseFloat(document.getElementById('bayarDp').value) || 0;
+      document.getElementById('cbLunas').checked = (grandTotal > 0 && dp >= grandTotal);
+    }
+
+    function updateInfoPelanggan() {
+      let nama = document.getElementById('pelanggan').value;
+      document.getElementById('tampilPelanggan').innerText = nama ? nama : '-';
+    }
+
+    function togglePlong() {
+      let pilihan = document.getElementById('finishing').value;
+      let wadahPlong = document.getElementById('wadahPlong');
+      let inputPlong = document.getElementById('plong');
+      if (pilihan === 'Plong') {
+        wadahPlong.style.display = 'block';
+        if (inputPlong.value === '0') inputPlong.value = '4';
+      } else {
+        wadahPlong.style.display = 'none';
+        inputPlong.value = '0';
+      }
+      hitungPreviewHarga();
+    }
+
+    function toggleMenuOpsional() {
+      let menu = document.getElementById('menuOpsional');
+      let btn = document.getElementById('btnToggleOpsi');
+      if (menu.style.display === 'none') {
+        menu.style.display = 'block';
+        btn.innerText = '- Sembunyikan Menu Item Lain';
+      } else {
+        menu.style.display = 'none';
+        btn.innerText = '+ Tambah Item/Biaya Lain (Catatan Tambahan)';
+      }
+    }
+
+    function cekEnterBanner(event) { if (event.key === "Enter") { event.preventDefault(); tambahKeNota(); } }
+    function cekEnterLain(event) { if (event.key === "Enter") { event.preventDefault(); tambahItemLainKeNota(); } }
+
+    function hitungPreviewHarga() {
+      let inputLebar = parseFloat(document.getElementById('lebar').value) || 0;
+      let inputPanjang = parseFloat(document.getElementById('panjang').value) || 0;
+      let jenisFinishing = document.getElementById('finishing').value;
+      let plong = parseFloat(document.getElementById('plong').value) || 0;
+      let jumlah = parseInt(document.getElementById('jumlah').value) || 1;
+
+      if (inputLebar === 0 || inputPanjang === 0) {
+        document.getElementById('previewHargaTeks').innerText = 'Rp 0';
+        return;
+      }
+
+      let calcLebar = inputLebar;
+      let calcPanjang = inputPanjang;
+      if (calcLebar < 50) calcLebar = 50;
+      if (calcLebar > 310) calcLebar = 310;
+      if (calcPanjang < 50) calcPanjang = 50;
+
+      const ukuranRol = [100, 160, 200, 220, 250, 280, 320];
+      let rollTerpakai = ukuranRol.find(rol => calcLebar <= rol) || calcLebar;
+      let hargaDasar = rollTerpakai * 1.6;
+
+      let biayaCetak = calcPanjang * hargaDasar; 
+      let biayaLipat = 0;
+      let biayaPlong = 0;
+
+      if (jenisFinishing === 'Lipat') {
+        biayaLipat = (calcLebar * calcPanjang) * 0.2;
+      } else if (jenisFinishing === 'Lepas') {
+        biayaLipat = 0;
+      } else if (jenisFinishing === 'Plong') {
+        biayaLipat = (calcLebar * calcPanjang) * 0.2;
+        biayaPlong = plong * 500;
+      }
+
+      let subtotalMentah = biayaCetak + biayaLipat + biayaPlong;
+      let subtotalBulatPerBanner = Math.ceil(subtotalMentah / 500) * 500;
+      let estimasiTotal = subtotalBulatPerBanner * jumlah;
+
+      document.getElementById('previewHargaTeks').innerText = formatRp.format(estimasiTotal);
+    }
+
+    function tambahKeNota() {
+      let inputLebar = parseFloat(document.getElementById('lebar').value) || 0;
+      let inputPanjang = parseFloat(document.getElementById('panjang').value) || 0;
+      let jenisFinishing = document.getElementById('finishing').value;
+      let plong = parseFloat(document.getElementById('plong').value) || 0;
+      let jumlah = parseInt(document.getElementById('jumlah').value) || 1;
+
+      if (inputLebar === 0 || inputPanjang === 0) {
+        Swal.fire({ icon: 'warning', title: 'Oops...', text: 'Lebar dan Panjang harus diisi!' });
+        return;
+      }
+
+      let ket = jumlah > 1 ? `${jumlah}x Banner` : 'Banner';
+
+      let calcLebar = inputLebar;
+      let calcPanjang = inputPanjang;
+      if (inputLebar < 50) calcLebar = 50;
+      if (inputLebar > 310) calcLebar = 310;
+      if (inputPanjang < 50) calcPanjang = 50;
+
+      const ukuranRol = [100, 160, 200, 220, 250, 280, 320];
+      let rollTerpakai = ukuranRol.find(rol => calcLebar <= rol) || calcLebar;
+      let hargaDasar = rollTerpakai * 1.6;
+
+      let biayaCetak = calcPanjang * hargaDasar; 
+      let biayaLipat = 0;
+      let biayaPlong = 0;
+
+      if (jenisFinishing === 'Lipat') {
+        biayaLipat = (calcLebar * calcPanjang) * 0.2;
+      } else if (jenisFinishing === 'Lepas') {
+        biayaLipat = 0;
+      } else if (jenisFinishing === 'Plong') {
+        biayaLipat = (calcLebar * calcPanjang) * 0.2;
+        biayaPlong = plong * 500;
+      }
+
+      let subtotalMentah = biayaCetak + biayaLipat + biayaPlong;
+      let hargaSatuanBulat = Math.ceil(subtotalMentah / 500) * 500; 
+      let totalAkhir = hargaSatuanBulat * jumlah;
+
+      let teksFinishing = jenisFinishing;
+      if (jenisFinishing === 'Plong' && plong > 0) teksFinishing += ` (${plong} Pc)`;
+
+      let itemBaru = {
+        keterangan: ket,
+        ukuranAsli: `${inputLebar}x${inputPanjang}cm`,
+        finishing: teksFinishing,
+        hargaSatuan: hargaSatuanBulat,
+        total: totalAkhir,
+        jumlah: jumlah,
+        tipe: 'banner'
+      };
+      
+      daftarPesanan.push(itemBaru);
+      tandaiBelumDisimpan();
+
+      document.getElementById('lebar').value = '';
+      document.getElementById('panjang').value = '';
+      document.getElementById('jumlah').value = '1';
+      document.getElementById('finishing').value = 'Lepas';
+      togglePlong();
+      document.getElementById('previewHargaTeks').innerText = 'Rp 0';
+      document.getElementById('lebar').focus();
+
+      renderNota();
+    }
+
+    function tambahItemLainKeNota() {
+      let ketLain = document.getElementById('itemLain').value || 'Item Tambahan';
+      let hargaLain = parseFloat(document.getElementById('hargaLain').value) || 0;
+      let jumlahLain = parseInt(document.getElementById('jumlahLain').value) || 1;
+
+      if (hargaLain === 0) {
+        Swal.fire({ icon: 'warning', title: 'Oops...', text: 'Nominal harga satuan tidak boleh kosong!' });
+        return;
+      }
+
+      let itemBaru = {
+        keterangan: jumlahLain > 1 ? `${jumlahLain}x ${ketLain}` : ketLain,
+        ukuranAsli: '-',
+        finishing: '-',
+        hargaSatuan: hargaLain,
+        total: hargaLain * jumlahLain,
+        jumlah: jumlahLain,
+        tipe: 'lain'
+      };
+
+      daftarPesanan.push(itemBaru);
+      tandaiBelumDisimpan();
+
+      document.getElementById('itemLain').value = '';
+      document.getElementById('hargaLain').value = '';
+      document.getElementById('jumlahLain').value = '1';
+      toggleMenuOpsional();
+      renderNota();
+    }
+
+    function renderNota() {
+      let wadah = document.getElementById('daftarItem');
+      let grandTotal = 0;
+
+      if (daftarPesanan.length === 0) {
+        wadah.innerHTML = '<div style="text-align: center; color: #94a3b8; font-style: italic; padding: 20px 0;">Belum ada pesanan yang ditambahkan.</div>';
+        document.getElementById('tampilGrandTotal').innerText = 'Rp 0';
+        document.getElementById('tampilDp').innerText = 'Rp 0';
+        document.getElementById('tampilSisa').innerText = 'Rp 0';
+        return;
+      }
+
+      wadah.innerHTML = ''; 
+
+      daftarPesanan.forEach((item, index) => {
+        grandTotal += item.total;
+        let barisDetail = item.ukuranAsli !== '-' ? `<span>   ${item.ukuranAsli} | ${item.finishing}</span>` : '<span></span>';
+        let rincianHargaTeks = item.jumlah > 1 ? `<div class="item-subdetail">(@ ${formatRp.format(item.hargaSatuan)} /pcs)</div>` : '';
+        
+        let htmlItem = `
+          <div class="item-pesanan">
+            <button class="btn-hapus" onclick="pusatHapus(${index})">X</button>
+            <div class="item-detail" style="font-weight: bold;">
+              <span>${index + 1}. ${item.keterangan}</span>
+              <span>${formatRp.format(item.total)}</span>
+            </div>
+            <div class="item-detail">
+               ${barisDetail}
+            </div>
+            ${rincianHargaTeks}
+          </div>
+        `;
+        wadah.innerHTML += htmlItem;
+      });
+
+      let dp = parseFloat(document.getElementById('bayarDp').value) || 0;
+      let sisa = grandTotal - dp;
+      if (sisa < 0) sisa = 0;
+      
+      sinkronCheckboxLunas(); 
+
+      document.getElementById('tampilGrandTotal').innerText = formatRp.format(grandTotal);
+      document.getElementById('tampilDp').innerText = formatRp.format(dp);
+      document.getElementById('tampilSisa').innerText = formatRp.format(sisa);
+    }
+
+    function pusatHapus(index) {
+      daftarPesanan.splice(index, 1);
+      tandaiBelumDisimpan();
+      renderNota();
+    }
+
+    function resetNota() {
+      Swal.fire({
+        title: 'Kosongkan Layar?',
+        text: "Semua isian nota di layar saat ini akan dibersihkan.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#94a3b8',
+        confirmButtonText: 'Ya, Kosongkan',
+        cancelButtonText: 'Batal'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          daftarPesanan = [];
+          isNotaSaved = false;
+          idNotaAktif = null; 
+          document.getElementById('pelanggan').value = '';
+          document.getElementById('bayarDp').value = '';
+          document.getElementById('cbLunas').checked = false;
+          document.getElementById('notaQRWrap').style.display = 'none';
+          document.getElementById('notaQRImg').innerHTML = '';
+          updateInfoPelanggan();
+          renderNota();
+        }
+      });
+    }
+
+    async function cetakNota() {
+      if (daftarPesanan.length === 0) {
+        Swal.fire({ icon: 'warning', title: 'Oops...', text: 'Nota masih kosong!' });
+        return;
+      }
+      
+      if (!idNotaAktif) { idNotaAktif = Date.now(); }
+
+      buatQRStatusPesanan();
+      
+      await new Promise(r => {
+        let img = document.querySelector('#notaQRImg img');
+        if (img && img.complete) r();
+        else if (img) img.onload = r;
+        else setTimeout(r, 50);
+      });
+      
+      let qrSrc = '';
+      let qrImg = document.querySelector('#notaQRImg img');
+      if (qrImg) qrSrc = qrImg.src;
+      
+      let jumlahCopy = parseInt(document.getElementById('opsiCopyCetak').value) || 1;
+      let wadahCetak = document.getElementById('areaCetakLatarBelakang');
+      let htmlAsli = document.getElementById('notaUtama').innerHTML;
+      wadahCetak.innerHTML = ''; 
+
+      for(let i=0; i<jumlahCopy; i++) {
+        let bungkusBaru = document.createElement('div');
+        bungkusBaru.className = 'nota-print-wrapper';
+        bungkusBaru.innerHTML = htmlAsli;
+        if (qrSrc) {
+          let qrWrap = bungkusBaru.querySelector('#notaQRWrap');
+          if (qrWrap) {
+            qrWrap.style.display = 'block';
+            let qrDiv = qrWrap.querySelector('#notaQRImg');
+            if (qrDiv) qrDiv.innerHTML = '<img src="' + qrSrc + '" width="120" height="120" alt="QR">';
+          }
+        }
+        wadahCetak.appendChild(bungkusBaru);
+      }
+      
+      if (!isNotaSaved) { simpanNotaKeSheets(true); }
+      window.print();
+      
+      kosongkanLayarOtomatis();
+    }
+
+    function buatQRStatusPesanan() {
+      if (!idNotaAktif) { console.log('QR: idNotaAktif kosong'); return; }
+      let baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+      let urlStatus = baseUrl + 'tracking.html?id=' + idNotaAktif;
+      let containerEl = document.getElementById('notaQRImg');
+      containerEl.innerHTML = '';
+
+      try {
+        if (typeof QRCode === 'undefined') { console.log('QR: library belum siap'); return; }
+        let tempDiv = document.createElement('div');
+        new QRCode(tempDiv, { text: urlStatus, width: 120, height: 120, correctLevel: QRCode.CorrectLevel.M });
+        let canvas = tempDiv.querySelector('canvas');
+        if (!canvas) { console.log('QR: canvas null'); return; }
+        containerEl.innerHTML = '<img src="' + canvas.toDataURL('image/png') + '" width="120" height="120" alt="QR Code">';
+        console.log('QR: berhasil id=' + idNotaAktif + ' url=' + urlStatus);
+      } catch (e) { console.log('QR error:', e); }
+      document.getElementById('notaQRWrap').style.display = 'block';
+    }
+
+    function generateQR() {
+      if (daftarPesanan.length === 0) {
+        Swal.fire({ icon: 'warning', title: 'Oops...', text: 'Tidak ada pesanan untuk dibuat QR!' });
+        return;
+      }
+      if (!idNotaAktif) { idNotaAktif = Date.now(); }
+      if (!isNotaSaved) { simpanNotaKeSheets(true); }
+      buatQRStatusPesanan();
+      Swal.fire({ icon: 'success', title: 'QR Code Berhasil Dibuat!', text: 'Scan QR untuk cek status pesanan.', timer: 2000, showConfirmButton: false });
+    }
+
+// FUNGSI SALIN CLIPBOARD
+    async function salinKeClipboard() {
+      if (daftarPesanan.length === 0) {
+        Swal.fire({ icon: 'warning', title: 'Oops...', text: 'Nota masih kosong!' });
+        return;
+      }
+      
+      if (!isNotaSaved) { simpanNotaKeSheets(true); }
+      if (!idNotaAktif) { idNotaAktif = Date.now(); }
+      buatQRStatusPesanan();
+
+      let grandTotal = document.getElementById('tampilGrandTotal').innerText;
+      let dpNum = parseFloat(document.getElementById('bayarDp').value) || 0;
+      let sisa = document.getElementById('tampilSisa').innerText;
+      
+      let teksWhatsApp = `*RINCIAN PESANAN:*\n\n`;
+      daftarPesanan.forEach((item, i) => {
+        teksWhatsApp += `*${i + 1}. ${item.keterangan}*\n`;
+        if (item.ukuranAsli !== '-') teksWhatsApp += `   ${item.ukuranAsli} | ${item.finishing}\n`;
+        if (item.jumlah > 1) { teksWhatsApp += `   _(@ ${formatRp.format(item.hargaSatuan)} /pcs)_\n`; }
+        teksWhatsApp += `   *Subtotal: ${formatRp.format(item.total)}*\n\n`;
+      });
+      
+      teksWhatsApp += `-------------------------\n*TOTAL BIAYA: ${grandTotal}*\n`;
+      if(dpNum > 0 && sisa !== "Rp 0") {
+        teksWhatsApp += `DP/Dibayar: ${formatRp.format(dpNum)}\n*SISA TAGIHAN: ${sisa}*\n`;
+      } else if (dpNum > 0 && sisa === "Rp 0") {
+        teksWhatsApp += `*STATUS: LUNAS*\n`;
+      }
+      teksWhatsApp += `-------------------------\n\nSilahkan Transaksi Full payment.\nSetelah transaksi file akan kami proses.\n\nMANDIRI (Sonysulaksono) : 1420016378217\nSHOPPEPAY (Eka enggarwati) : 082132571255\n`;
+      
+      navigator.clipboard.writeText(teksWhatsApp).then(() => {
+        Swal.fire({ icon: 'success', title: 'Berhasil!', text: 'Teks Berhasil Disalin! QR sudah siap.', timer: 2000, showConfirmButton: false });
+      }).catch(err => { Swal.fire({ icon: 'error', title: 'Gagal', text: 'Gagal menyalin teks.' }); });
+    }
+
+    function kosongkanLayarOtomatis() {
+      daftarPesanan = [];
+      isNotaSaved = false;
+      idNotaAktif = null; 
+      document.getElementById('pelanggan').value = '';
+      document.getElementById('bayarDp').value = '';
+      document.getElementById('cbLunas').checked = false;
+      document.getElementById('notaQRWrap').style.display = 'none';
+      document.getElementById('notaQRImg').innerHTML = '';
+      updateInfoPelanggan();
+      renderNota();
+    }
+
+    async function muatRiwayatDariSheets() {
+      if (SCRIPT_URL.includes('PASTE_URL_WEB_APP')) return;
+      try {
+        let response = await fetch(SCRIPT_URL, { 
+          method: 'POST', 
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          redirect: 'follow',
+          body: JSON.stringify({ action: 'fetch' }) 
+        });
+        let res = await response.json();
+        if (res.status === 'success') {
+          riwayatGlobal = res.data;
+          tampilkanRiwayat();
+        }
+      } catch (e) { console.error("Gagal memuat database:", e); }
+    }
+
+    function simpanNotaKeSheets(silent = false) {
+      if (daftarPesanan.length === 0 || isNotaSaved) return;
+      if (SCRIPT_URL.includes('PASTE_URL_WEB_APP')) return;
+      
+      isNotaSaved = true; 
+
+      let namaPlg = document.getElementById('pelanggan').value || 'Tanpa Nama';
+      let dateStringLokal = document.getElementById('notaTanggal').innerText;
+      let tglHariIni = new Date();
+      let dateISO = tglHariIni.toISOString().split('T')[0]; 
+      let grandTotal = daftarPesanan.reduce((sum, item) => sum + item.total, 0);
+      let dp = parseFloat(document.getElementById('bayarDp').value) || 0;
+
+      if (idNotaAktif === null) { idNotaAktif = Date.now(); }
+
+      // Pertahankan status pesanan yang sudah ada (jika sedang edit nota lama), default 'Diproses' untuk nota baru
+      let notaLamaUtkStatus = riwayatGlobal.find(n => n.idTimestamp === idNotaAktif);
+      let statusPesanan = notaLamaUtkStatus ? notaLamaUtkStatus.status : 'Diproses';
+
+      let dataNota = {
+        idTimestamp: idNotaAktif,
+        tanggalISO: dateISO,
+        tanggalLokal: dateStringLokal,
+        namaPelanggan: namaPlg,
+        pesanan: daftarPesanan,
+        totalTagihan: grandTotal,
+        dp: dp,
+        status: statusPesanan
+      };
+
+      // Update layar saat itu juga (instan)
+      let indexLama = riwayatGlobal.findIndex(n => n.idTimestamp === idNotaAktif);
+      if (indexLama !== -1) {
+        riwayatGlobal[indexLama] = dataNota;
+      } else {
+        riwayatGlobal.unshift(dataNota);
+      }
+      tampilkanRiwayat();
+
+      if (!silent) {
+        const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
+        Toast.fire({ icon: 'success', title: 'Data Tersimpan!' });
+      }
+
+      // Kirim ke Google Sheets di belakang layar
+      fetch(SCRIPT_URL, { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        redirect: 'follow',
+        body: JSON.stringify({ action: 'saveOrUpdate', nota: dataNota }) 
+      }).catch(e => { isNotaSaved = false; });
+    }
+
+    function tampilkanRiwayat() {
+      let tbody = document.getElementById('tabelRiwayat');
+      let container = document.getElementById('tabelRiwayatContainer');
+      let filterNama = document.getElementById('cariNama').value.toLowerCase();
+      let filterTanggal = document.getElementById('cariTanggal').value;
+
+      if (filterNama === '' && filterTanggal === '') {
+        container.style.display = 'none';
+        tbody.innerHTML = '';
+        return;
+      }
+      container.style.display = 'block';
+      tbody.innerHTML = '';
+
+      let riwayatDiurutkan = [...riwayatGlobal].sort((a,b) => b.idTimestamp - a.idTimestamp);
+      let hasilPencarian = riwayatDiurutkan.filter(nota => {
+        let cocokNama = nota.namaPelanggan.toLowerCase().includes(filterNama);
+        let d = new Date(nota.idTimestamp);
+        let yyyy = d.getFullYear();
+        let mm = String(d.getMonth() + 1).padStart(2, '0');
+        let dd = String(d.getDate()).padStart(2, '0');
+        let tglISOAkurat = `${yyyy}-${mm}-${dd}`;
+        let cocokTanggal = filterTanggal === '' || tglISOAkurat === filterTanggal;
+        return cocokNama && cocokTanggal;
+      });
+
+      if (hasilPencarian.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #94a3b8; font-style: italic;">Tidak ada riwayat ditemukan.</td></tr>`;
+        return;
+      }
+
+      hasilPencarian.forEach(nota => {
+        let sisa = nota.totalTagihan - nota.dp;
+        if (sisa < 0) sisa = 0;
+        let isLunas = (nota.totalTagihan > 0 && sisa === 0);
+
+        let tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${nota.tanggalLokal}</td>
+          
+          <td>
+            <span 
+              contenteditable="true" 
+              style="font-weight: bold; color: #1e293b; outline: none; padding: 2px 4px; border-radius: 4px; display: inline-block; min-width: 50px; transition: 0.2s;"
+              onfocus="this.style.backgroundColor='#f1f5f9'; this.style.color='#000';"
+              onblur="this.style.backgroundColor='transparent'; this.style.color='#1e293b'; simpanNamaInline(${nota.idTimestamp}, this, '${nota.namaPelanggan.replace(/'/g, "\\'")}')"
+              onkeydown="if(event.key === 'Enter') { event.preventDefault(); this.blur(); }"
+              title="Klik untuk langsung mengubah nama"
+            >${nota.namaPelanggan}</span>
+          </td>
+          <td style="color: ${sisa > 0 ? '#ef4444' : '#10b981'}; font-weight: bold;">${formatRp.format(sisa)}</td>
+          <td style="text-align: center;">
+            <input type="checkbox" style="width: 18px; height: 18px; cursor: pointer;" ${isLunas ? 'checked disabled' : ''} onchange="centangLunasLangsung(${nota.idTimestamp}, this)">
+          </td>
+          <td>
+            <select style="padding:6px 8px; border-radius:6px; border:1px solid #e2e8f0; font-size:0.85rem; font-weight:600; cursor:pointer; background:${(nota.status === 'Selesai') ? '#dcfce7' : '#fef3c7'}; color:${(nota.status === 'Selesai') ? '#15803d' : '#b45309'};" onchange="ubahStatusPesanan(${nota.idTimestamp}, this.value)">
+              <option value="Diproses" ${(nota.status !== 'Selesai') ? 'selected' : ''}>Diproses</option>
+              <option value="Selesai" ${(nota.status === 'Selesai') ? 'selected' : ''}>Selesai</option>
+            </select>
+          </td>
+          <td>
+            <button class="btn-buka" onclick="bukaNotaLama(${nota.idTimestamp})">Buka</button>
+            <button class="btn-hapus-riwayat" onclick="hapusNotaLama(${nota.idTimestamp})">Hapus</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function simpanNamaInline(idTujuan, elemenSpan, namaLama) {
+      let namaBaru = elemenSpan.innerText.trim();
+
+      if (!namaBaru) {
+        elemenSpan.innerText = namaLama;
+        Swal.fire({ icon: 'warning', title: 'Oops...', text: 'Nama tidak boleh kosong!', timer: 1500, showConfirmButton: false });
+        return;
+      }
+      if (namaBaru === namaLama) return;
+
+      // Notifikasi sukses kecil & instan
+      const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
+      Toast.fire({ icon: 'success', title: 'Nama Tersimpan!' });
+
+      let targetNota = riwayatGlobal.find(n => n.idTimestamp === idTujuan);
+      if (targetNota) {
+        targetNota.namaPelanggan = namaBaru; // Update lokal secara instan
+
+        if (idNotaAktif === idTujuan) {
+           document.getElementById('pelanggan').value = namaBaru;
+           document.getElementById('tampilPelanggan').innerText = namaBaru;
+        }
+        elemenSpan.setAttribute('onblur', `this.style.backgroundColor='transparent'; this.style.color='#1e293b'; simpanNamaInline(${idTujuan}, this, '${namaBaru.replace(/'/g, "\\'")}')`);
+        
+        // Kirim ke Google Sheets di latar belakang (tanpa loading / tanpa await)
+        fetch(SCRIPT_URL, { 
+          method: 'POST', 
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          redirect: 'follow',
+          body: JSON.stringify({ action: 'saveOrUpdate', nota: targetNota }) 
+        }).catch(e => console.log('Proses background gagal'));
+      }
+    }
+
+    function bukaNotaLama(idTujuan) {
+      let targetNota = riwayatGlobal.find(n => n.idTimestamp === idTujuan);
+      if (targetNota) {
+        daftarPesanan = [...targetNota.pesanan];
+        document.getElementById('pelanggan').value = targetNota.namaPelanggan === 'Tanpa Nama' ? '' : targetNota.namaPelanggan;
+        document.getElementById('bayarDp').value = targetNota.dp > 0 ? targetNota.dp : '';
+        idNotaAktif = targetNota.idTimestamp; 
+        isNotaSaved = true; 
+        document.getElementById('notaQRWrap').style.display = 'none';
+        document.getElementById('notaQRImg').innerHTML = '';
+        updateInfoPelanggan();
+        renderNota();
+        window.scrollTo({ top: 0, behavior: 'smooth' }); 
+      }
+    }
+
+    function centangLunasLangsung(idTujuan, elCheckbox) {
+      Swal.fire({
+        title: 'Tandai Lunas?',
+        text: "Sisa tagihan akan menjadi Rp 0 secara otomatis.",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#10b981',
+        cancelButtonColor: '#94a3b8',
+        confirmButtonText: 'Ya, Lunas!',
+        cancelButtonText: 'Batal'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          let targetNota = riwayatGlobal.find(n => n.idTimestamp === idTujuan);
+          if (targetNota) {
+            // Update layar saat itu juga (instan)
+            targetNota.dp = targetNota.totalTagihan;
+            if(idNotaAktif === idTujuan) {
+               document.getElementById('bayarDp').value = targetNota.totalTagihan;
+               document.getElementById('cbLunas').checked = true;
+               renderNota();
+            }
+            tampilkanRiwayat();
+            
+            const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
+            Toast.fire({ icon: 'success', title: 'Pembayaran Lunas!' });
+
+            // Update di Google Sheets secara diam-diam
+            fetch(SCRIPT_URL, { 
+              method: 'POST', 
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              redirect: 'follow',
+              body: JSON.stringify({ action: 'saveOrUpdate', nota: targetNota }) 
+            }).catch(e => console.log('Update lunas background gagal'));
+          }
+        } else { elCheckbox.checked = false; }
+      });
+    }
+
+    function ubahStatusPesanan(idTujuan, statusBaru) {
+      let targetNota = riwayatGlobal.find(n => n.idTimestamp === idTujuan);
+      if (!targetNota) return;
+
+      targetNota.status = statusBaru; // Update lokal secara instan
+
+      const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
+      Toast.fire({ icon: 'success', title: statusBaru === 'Selesai' ? 'Pesanan Ditandai Selesai!' : 'Status Diubah Jadi Diproses' });
+
+      tampilkanRiwayat();
+
+      // Update di Google Sheets secara diam-diam
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        redirect: 'follow',
+        body: JSON.stringify({ action: 'saveOrUpdate', nota: targetNota })
+      }).catch(e => console.log('Update status background gagal'));
+    }
+
+    function hapusNotaLama(idTujuan) {
+      Swal.fire({
+        title: 'Hapus dari Database?',
+        text: "Nota ini akan dihapus permanen!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#94a3b8',
+        confirmButtonText: 'Ya, Hapus',
+        cancelButtonText: 'Batal'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Update layar saat itu juga (instan)
+          riwayatGlobal = riwayatGlobal.filter(n => n.idTimestamp !== idTujuan);
+          if(idNotaAktif === idTujuan) idNotaAktif = null;
+          tampilkanRiwayat(); 
+          
+          const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
+          Toast.fire({ icon: 'success', title: 'Data Terhapus!' });
+
+          // Hapus di Google Sheets secara diam-diam
+          fetch(SCRIPT_URL, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            redirect: 'follow',
+            body: JSON.stringify({ action: 'delete', idTimestamp: idTujuan }) 
+          }).catch(e => console.log('Hapus background gagal'));
+        }
+      });
+    }
+  </script>
+</body>
+</html>
