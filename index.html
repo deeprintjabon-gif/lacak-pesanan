@@ -218,18 +218,18 @@
       <div style="display: flex; gap: 10px;">
         <div class="input-group" style="flex: 1;">
           <label>Lebar (cm) <span class="limit-text">*Min: 50, Max: 310</span></label>
-          <input type="number" id="lebar" placeholder="50 - 310" onkeypress="cekEnterBanner(event)" oninput="hitungPreviewHarga()">
+          <input type="number" id="lebar" placeholder="50 - 310" onpress="cekEnterBanner(event)" oninput="hitungPreviewHarga()">
         </div>
         
         <div class="input-group" style="flex: 1;">
           <label>Panjang (cm) <span class="limit-text">*Min: 50</span></label>
-          <input type="number" id="panjang" placeholder="Minimal 50" onkeypress="cekEnterBanner(event)" oninput="hitungPreviewHarga()">
+          <input type="number" id="panjang" placeholder="Minimal 50" onpress="cekEnterBanner(event)" oninput="hitungPreviewHarga()">
         </div>
       </div>
 
       <div class="input-group">
         <label>Jumlah Pesanan (Pcs)</label>
-        <input type="number" id="jumlah" placeholder="Contoh: 2" value="1" min="1" onkeypress="cekEnterBanner(event)" oninput="hitungPreviewHarga()">
+        <input type="number" id="jumlah" placeholder="Contoh: 2" value="1" min="1" onpress="cekEnterBanner(event)" oninput="hitungPreviewHarga()">
       </div>
 
       <div class="input-group">
@@ -243,7 +243,7 @@
 
       <div class="input-group" id="wadahPlong" style="display: none;">
         <label>Jumlah Plong (Per Banner)</label>
-        <input type="number" id="plong" placeholder="Masukkan jumlah" value="0" onkeypress="cekEnterBanner(event)" oninput="hitungPreviewHarga()">
+        <input type="number" id="plong" placeholder="Masukkan jumlah" value="0" onpress="cekEnterBanner(event)" oninput="hitungPreviewHarga()">
       </div>
 
       <div class="preview-harga-box">
@@ -258,16 +258,16 @@
       <div id="menuOpsional" style="display: none; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px dashed #cbd5e1; margin-top: 10px;">
         <div class="input-group">
           <label>Nama Item / Catatan Tambahan</label>
-          <input type="text" id="itemLain" placeholder="Contoh: Rangka X Banner" onkeypress="cekEnterLain(event)">
+          <input type="text" id="itemLain" placeholder="Contoh: Rangka X Banner" onpress="cekEnterLain(event)">
         </div>
         <div style="display: flex; gap: 10px;">
           <div class="input-group" style="flex: 1;">
             <label>Harga Satuan (Rp)</label>
-            <input type="number" id="hargaLain" placeholder="Contoh: 35000" onkeypress="cekEnterLain(event)">
+            <input type="number" id="hargaLain" placeholder="Contoh: 35000" onpress="cekEnterLain(event)">
           </div>
           <div class="input-group" style="flex: 1;">
             <label>Jumlah</label>
-            <input type="number" id="jumlahLain" placeholder="1" value="1" min="1" onkeypress="cekEnterLain(event)">
+            <input type="number" id="jumlahLain" placeholder="1" value="1" min="1" onpress="cekEnterLain(event)">
           </div>
         </div>
         <button class="btn-tambah" style="background-color: #475569;" onclick="tambahItemLainKeNota()">+ Tambahkan Item</button>
@@ -554,8 +554,8 @@
       }
     }
 
-    function cekEnterBanner(event) { if (event.key === "Enter") { event.preventDefault(); tambahKeNota(); } }
-    function cekEnterLain(event) { if (event.key === "Enter") { event.preventDefault(); tambahItemLainKeNota(); } }
+    function cekEnterBanner(event) { if (event. === "Enter") { event.preventDefault(); tambahKeNota(); } }
+    function cekEnterLain(event) { if (event. === "Enter") { event.preventDefault(); tambahItemLainKeNota(); } }
 
     function hitungPreviewHarga() {
       let inputLebar = parseFloat(document.getElementById('lebar').value) || 0;
@@ -1011,7 +1011,7 @@
               style="font-weight: bold; color: #1e293b; outline: none; padding: 2px 4px; border-radius: 4px; display: inline-block; min-width: 50px; transition: 0.2s;"
               onfocus="this.style.backgroundColor='#f1f5f9'; this.style.color='#000';"
               onblur="this.style.backgroundColor='transparent'; this.style.color='#1e293b'; simpanNamaInline(${nota.idTimestamp}, this, '${nota.namaPelanggan.replace(/'/g, "\\'")}')"
-              onkeydown="if(event.key === 'Enter') { event.preventDefault(); this.blur(); }"
+              ondown="if(event. === 'Enter') { event.preventDefault(); this.blur(); }"
               title="Klik untuk langsung mengubah nama"
             >${nota.namaPelanggan}</span>
           </td>
